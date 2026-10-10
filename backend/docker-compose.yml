@@ -1,0 +1,67 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: eventpulse-mysql
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./infrastructure/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"
+    networks:
+      - eventpulse-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=root"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: eventpulse-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - eventpulse-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: eventpulse-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_DB: mysql
+      KC_DB_URL: jdbc:mysql://mysql:3306/keycloak?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      KC_DB_USERNAME: root
+      KC_DB_PASSWORD: root
+      KC_HOSTNAME_PORT: "8180"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin_password
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-placeholder-google-client-id}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-placeholder-google-client-secret}
+    volumes:
+      - ./infrastructure/keycloak/eventpulse-realm.json:/opt/keycloak/data/import/eventpulse-realm.json:ro
+    ports:
+      - "8180:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - eventpulse-network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  eventpulse-network:
+    name: eventpulse-network
+    driver: bridge

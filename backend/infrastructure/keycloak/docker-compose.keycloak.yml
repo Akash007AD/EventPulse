@@ -1,30 +1,32 @@
 services:
   keycloak-db:
-    image: postgres:16-alpine
+    image: mysql:8.0
     container_name: eventpulse-keycloak-db
     environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: keycloak_password
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: keycloak_password
+      MYSQL_ROOT_PASSWORD: keycloak_root_password
+    command: --default-authentication-plugin=mysql_native_password
     volumes:
-      - keycloak_db_data:/var/lib/postgresql/data
+      - keycloak_mysql_data:/var/lib/mysql
     ports:
-      - "5433:5432"
+      - "3307:3306"
     networks:
       - eventpulse-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "keycloak", "--password=keycloak_password"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     container_name: eventpulse-keycloak
     command: start-dev --import-realm
     environment:
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB: mysql
+      KC_DB_URL: jdbc:mysql://keycloak-db:3306/keycloak?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: keycloak_password
       KC_HOSTNAME_PORT: "8180"
@@ -43,7 +45,7 @@ services:
       - eventpulse-network
 
 volumes:
-  keycloak_db_data:
+  keycloak_mysql_data:
 
 networks:
   eventpulse-network:
