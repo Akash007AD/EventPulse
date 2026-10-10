@@ -42,6 +42,9 @@ class BookingControllerTest {
     @MockBean
     private BookingService bookingService;
 
+    @MockBean
+    private com.eventpulse.booking.service.GoogleCalendarService calendarService;
+
     @Test
     @DisplayName("POST /api/v1/bookings should return 201 Created on valid request")
     void createBooking_shouldReturn201() throws Exception {

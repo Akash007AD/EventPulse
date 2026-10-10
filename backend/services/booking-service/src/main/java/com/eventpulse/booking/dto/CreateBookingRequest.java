@@ -39,4 +39,14 @@ public class CreateBookingRequest {
     private String currency;
 
     private String customerSubject;
+
+    private java.util.List<String> seatNumbers;
+
+    public CreateBookingRequest(UUID eventId, Integer quantity, BigDecimal amount, String currency, String customerSubject) {
+        this.eventId = eventId;
+        this.quantity = quantity;
+        this.amount = amount;
+        this.currency = currency;
+        this.customerSubject = customerSubject;
+    }
 }

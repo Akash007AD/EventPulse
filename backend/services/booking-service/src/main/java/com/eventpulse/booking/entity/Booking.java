@@ -60,6 +60,9 @@ public class Booking {
     @Column(name = "status", nullable = false, length = 50)
     private BookingStatus status;
 
+    @Column(name = "seat_numbers", length = 500)
+    private String seatNumbers;
+
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
 

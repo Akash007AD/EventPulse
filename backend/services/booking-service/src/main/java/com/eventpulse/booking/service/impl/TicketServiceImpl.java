@@ -46,10 +46,15 @@ public class TicketServiceImpl implements TicketService {
         Instant now = Instant.now();
         List<Ticket> toSave = new ArrayList<>();
 
+        String[] individualSeats = (booking.getSeatNumbers() != null && !booking.getSeatNumbers().isBlank())
+                ? booking.getSeatNumbers().split(",\\s*")
+                : new String[0];
+
         for (int i = 1; i <= booking.getQuantity(); i++) {
             UUID ticketId = UUID.randomUUID();
             String ticketNumber = String.format("TKT-%s-%02d", shortBookingId, i);
             String qrToken = qrCodeTokenService.generateToken(ticketId, booking.getId(), booking.getEventId(), now);
+            String assignedSeat = (i - 1 < individualSeats.length) ? individualSeats[i - 1].trim() : "General Admission";
 
             Ticket ticket = Ticket.builder()
                     .id(ticketId)
@@ -58,6 +63,7 @@ public class TicketServiceImpl implements TicketService {
                     .customerSubject(booking.getCustomerSubject())
                     .ticketNumber(ticketNumber)
                     .qrCodeToken(qrToken)
+                    .seatNumber(assignedSeat)
                     .status(TicketStatus.ISSUED)
                     .createdAt(now)
                     .updatedAt(now)

@@ -79,11 +79,18 @@ public class TicketEmailServiceImpl implements TicketEmailService {
                 sb.append("<span style=\"font-weight: 700; color: #ffffff;\">Ticket: ").append(escapeHtml(ticket.getTicketNumber())).append("</span>");
                 sb.append("<span class=\"badge\">VALID FOR ENTRY</span>");
                 sb.append("</div>");
+                if (ticket.getSeatInfo() != null && !ticket.getSeatInfo().isBlank()) {
+                    sb.append("<div style=\"font-size: 13px; color: #f59e0b; margin-bottom: 6px; font-weight: 600;\">Seat: ").append(escapeHtml(ticket.getSeatInfo())).append("</div>");
+                }
                 sb.append("<div style=\"font-size: 12px; color: #94a3b8;\">Gate Check-in Token:</div>");
                 sb.append("<div class=\"qr-token\">").append(escapeHtml(ticket.getQrCodeToken())).append("</div>");
                 sb.append("</div>");
             }
         }
+
+        sb.append("<div style=\"text-align: center; margin: 20px 0;\">");
+        sb.append("<a href=\"https://calendar.google.com/calendar/render?action=TEMPLATE&text=").append(escapeHtml(request.getEventTitle())).append("\" style=\"background: #d97706; color: #ffffff; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 13px; display: inline-block;\">Add to Google Calendar</a>");
+        sb.append("</div>");
 
         sb.append("<div class=\"notice\">");
         sb.append("⚠️ <strong>Single-Use Security Notice:</strong> QR codes are single-use. Screenshot duplicates or re-entry attempts will be rejected by gate scanners.<br/>");

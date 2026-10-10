@@ -46,6 +46,9 @@ class BookingSecurityTest {
     private BookingService bookingService;
 
     @MockBean
+    private com.eventpulse.booking.service.GoogleCalendarService calendarService;
+
+    @MockBean
     private JwtDecoder jwtDecoder;
 
     @Test

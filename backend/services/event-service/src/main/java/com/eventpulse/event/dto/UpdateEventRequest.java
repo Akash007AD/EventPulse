@@ -49,4 +49,22 @@ public class UpdateEventRequest implements DateRanged {
     private String currency;
 
     private EventStatus status;
+
+    private String posterUrl;
+
+    private String seatingSchema;
+
+    private java.util.List<PerformerDto> performers;
+
+    public UpdateEventRequest(String name, String description, String venueName, String city,
+            Instant startsAt, Instant endsAt, String currency, EventStatus status) {
+        this.name = name;
+        this.description = description;
+        this.venueName = venueName;
+        this.city = city;
+        this.startsAt = startsAt;
+        this.endsAt = endsAt;
+        this.currency = currency;
+        this.status = status;
+    }
 }

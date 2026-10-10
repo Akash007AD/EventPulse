@@ -31,6 +31,7 @@ import java.util.UUID;
 public class EventController {
 
     private final EventService eventService;
+    private final com.eventpulse.event.service.EventCalendarService calendarService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -59,6 +60,21 @@ public class EventController {
     public ResponseEntity<EventResponse> getEventById(@PathVariable UUID id) {
         EventResponse event = eventService.getPublishedEventById(id);
         return ResponseEntity.ok(event);
+    }
+
+    @GetMapping("/{id}/calendar.ics")
+    public ResponseEntity<String> getEventCalendarIcs(@PathVariable UUID id) {
+        String icsContent = calendarService.generateIcsCalendar(id);
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"event-" + id + ".ics\"")
+                .contentType(org.springframework.http.MediaType.parseMediaType("text/calendar; charset=UTF-8"))
+                .body(icsContent);
+    }
+
+    @GetMapping("/{id}/calendar/google-url")
+    public ResponseEntity<java.util.Map<String, String>> getGoogleCalendarUrl(@PathVariable UUID id) {
+        String url = calendarService.generateGoogleCalendarUrl(id);
+        return ResponseEntity.ok(java.util.Map.of("url", url));
     }
 
     @PutMapping("/{id}")

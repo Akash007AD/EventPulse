@@ -51,7 +51,22 @@ public class EventServiceImpl implements EventService {
                 .currency(request.getCurrency().trim().toUpperCase())
                 .status(initialStatus)
                 .organizerSubject(request.getOrganizerSubject())
+                .posterUrl(request.getPosterUrl())
+                .seatingSchema(request.getSeatingSchema())
                 .build();
+
+        if (request.getPerformers() != null && !request.getPerformers().isEmpty()) {
+            for (com.eventpulse.event.dto.PerformerDto pDto : request.getPerformers()) {
+                com.eventpulse.event.entity.Performer performer = com.eventpulse.event.entity.Performer.builder()
+                        .name(pDto.getName())
+                        .role(pDto.getRole())
+                        .imageUrl(pDto.getImageUrl())
+                        .bio(pDto.getBio())
+                        .displayOrder(pDto.getDisplayOrder())
+                        .build();
+                event.addPerformer(performer);
+            }
+        }
 
         Event savedEvent = eventRepository.save(event);
         log.info("Event created successfully with ID: {}", savedEvent.getId());
@@ -121,6 +136,28 @@ public class EventServiceImpl implements EventService {
 
         if (request.getStatus() != null) {
             event.setStatus(request.getStatus());
+        }
+
+        if (request.getPosterUrl() != null) {
+            event.setPosterUrl(request.getPosterUrl());
+        }
+
+        if (request.getSeatingSchema() != null) {
+            event.setSeatingSchema(request.getSeatingSchema());
+        }
+
+        if (request.getPerformers() != null) {
+            event.clearPerformers();
+            for (com.eventpulse.event.dto.PerformerDto pDto : request.getPerformers()) {
+                com.eventpulse.event.entity.Performer performer = com.eventpulse.event.entity.Performer.builder()
+                        .name(pDto.getName())
+                        .role(pDto.getRole())
+                        .imageUrl(pDto.getImageUrl())
+                        .bio(pDto.getBio())
+                        .displayOrder(pDto.getDisplayOrder())
+                        .build();
+                event.addPerformer(performer);
+            }
         }
 
         Event updated = eventRepository.save(event);

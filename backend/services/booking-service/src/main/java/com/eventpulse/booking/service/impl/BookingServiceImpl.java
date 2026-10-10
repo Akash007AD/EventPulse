@@ -69,6 +69,10 @@ public class BookingServiceImpl implements BookingService {
             Instant now = Instant.now();
             Instant expiresAt = now.plus(holdDurationMinutes, ChronoUnit.MINUTES);
 
+            String seatsCsv = (request.getSeatNumbers() != null && !request.getSeatNumbers().isEmpty())
+                    ? String.join(", ", request.getSeatNumbers())
+                    : null;
+
             Booking booking = Booking.builder()
                     .id(UUID.randomUUID())
                     .customerSubject(effectiveCustomer)
@@ -77,6 +81,7 @@ public class BookingServiceImpl implements BookingService {
                     .amount(request.getAmount())
                     .currency(request.getCurrency().trim().toUpperCase())
                     .status(BookingStatus.PENDING_PAYMENT)
+                    .seatNumbers(seatsCsv)
                     .expiresAt(expiresAt)
                     .build();
 

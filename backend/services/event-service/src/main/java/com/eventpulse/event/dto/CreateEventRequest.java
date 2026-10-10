@@ -51,4 +51,24 @@ public class CreateEventRequest implements DateRanged {
     private EventStatus status;
 
     private String organizerSubject;
+
+    private String posterUrl;
+
+    private String seatingSchema;
+
+    private java.util.List<PerformerDto> performers;
+
+    public CreateEventRequest(String name, String description, String venueName, String city,
+                              Instant startsAt, Instant endsAt, String currency, EventStatus status,
+                              String organizerSubject) {
+        this.name = name;
+        this.description = description;
+        this.venueName = venueName;
+        this.city = city;
+        this.startsAt = startsAt;
+        this.endsAt = endsAt;
+        this.currency = currency;
+        this.status = status;
+        this.organizerSubject = organizerSubject;
+    }
 }

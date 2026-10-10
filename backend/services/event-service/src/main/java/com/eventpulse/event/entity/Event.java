@@ -66,6 +66,16 @@ public class Event {
     @Column(name = "organizer_subject", length = 255)
     private String organizerSubject;
 
+    @Column(name = "poster_url", length = 1000)
+    private String posterUrl;
+
+    @Column(name = "seating_schema", columnDefinition = "TEXT")
+    private String seatingSchema;
+
+    @Builder.Default
+    @jakarta.persistence.OneToMany(mappedBy = "event", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true, fetch = jakarta.persistence.FetchType.LAZY)
+    private java.util.List<Performer> performers = new java.util.ArrayList<>();
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -107,5 +117,19 @@ public class Event {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = Instant.now();
+    }
+
+    public void addPerformer(Performer performer) {
+        if (performers == null) {
+            performers = new java.util.ArrayList<>();
+        }
+        performers.add(performer);
+        performer.setEvent(this);
+    }
+
+    public void clearPerformers() {
+        if (performers != null) {
+            performers.clear();
+        }
     }
 }

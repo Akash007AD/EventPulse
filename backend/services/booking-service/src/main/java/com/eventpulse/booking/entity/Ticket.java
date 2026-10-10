@@ -55,6 +55,9 @@ public class Ticket {
     @Column(name = "qr_code_token", nullable = false, unique = true, length = 512)
     private String qrCodeToken;
 
+    @Column(name = "seat_number", length = 64)
+    private String seatNumber;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
     private TicketStatus status;

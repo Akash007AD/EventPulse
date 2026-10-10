@@ -29,6 +29,7 @@ import java.util.UUID;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final com.eventpulse.booking.service.GoogleCalendarService calendarService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -82,6 +83,49 @@ public class BookingController {
 
         BookingResponse response = bookingService.cancelBooking(id, customerSubject);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/calendar/google")
+    public ResponseEntity<com.eventpulse.booking.dto.GoogleCalendarEventResponse> syncToGoogleCalendar(
+            @PathVariable UUID id,
+            @RequestHeader(name = "X-Google-Access-Token", required = false) String headerGoogleToken,
+            @RequestBody(required = false) com.eventpulse.booking.dto.GoogleCalendarSyncRequest bodyRequest,
+            @RequestHeader(name = "X-Customer-Subject", required = false) String headerCustomerSubject,
+            @AuthenticationPrincipal Jwt jwt,
+            Authentication authentication
+    ) {
+        String token = (bodyRequest != null && bodyRequest.getGoogleAccessToken() != null && !bodyRequest.getGoogleAccessToken().isBlank())
+                ? bodyRequest.getGoogleAccessToken()
+                : headerGoogleToken;
+
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("Google OAuth access token is required (pass via header X-Google-Access-Token or body)");
+        }
+
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        String customerSubject = isAdmin ? null : resolveCustomerSubject(jwt, headerCustomerSubject);
+
+        com.eventpulse.booking.dto.GoogleCalendarEventResponse response = calendarService.syncBookingToGoogleCalendar(id, token, customerSubject);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/calendar.ics")
+    public ResponseEntity<String> getBookingCalendarIcs(
+            @PathVariable UUID id,
+            @RequestHeader(name = "X-Customer-Subject", required = false) String headerCustomerSubject,
+            @AuthenticationPrincipal Jwt jwt,
+            Authentication authentication
+    ) {
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        String customerSubject = isAdmin ? null : resolveCustomerSubject(jwt, headerCustomerSubject);
+
+        String ics = calendarService.generateIcsCalendar(id, customerSubject);
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"booking-" + id + ".ics\"")
+                .contentType(org.springframework.http.MediaType.parseMediaType("text/calendar; charset=UTF-8"))
+                .body(ics);
     }
 
     private String resolveCustomerSubject(Jwt jwt, String headerCustomerSubject) {

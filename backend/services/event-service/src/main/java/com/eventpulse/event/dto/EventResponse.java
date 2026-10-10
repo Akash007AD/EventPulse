@@ -31,12 +31,43 @@ public class EventResponse implements Serializable {
     private String currency;
     private EventStatus status;
     private String organizerSubject;
+    private String posterUrl;
+    private String seatingSchema;
+    private java.util.List<PerformerDto> performers;
     private Instant createdAt;
     private Instant updatedAt;
+
+    public EventResponse(UUID id, String name, String description, String venueName, String city,
+                         Instant startsAt, Instant endsAt, String currency, EventStatus status,
+                         String organizerSubject, Instant createdAt, Instant updatedAt) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.venueName = venueName;
+        this.city = city;
+        this.startsAt = startsAt;
+        this.endsAt = endsAt;
+        this.currency = currency;
+        this.status = status;
+        this.organizerSubject = organizerSubject;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.performers = java.util.List.of();
+    }
 
     public static EventResponse fromEntity(Event event) {
         if (event == null) {
             return null;
+        }
+        java.util.List<PerformerDto> performerList = null;
+        if (event.getPerformers() != null) {
+            try {
+                performerList = event.getPerformers().stream()
+                        .map(PerformerDto::fromEntity)
+                        .toList();
+            } catch (Exception ignored) {
+                // Ignore if uninitialized lazy proxy in detached contexts
+            }
         }
         return EventResponse.builder()
                 .id(event.getId())
@@ -49,6 +80,9 @@ public class EventResponse implements Serializable {
                 .currency(event.getCurrency())
                 .status(event.getStatus())
                 .organizerSubject(event.getOrganizerSubject())
+                .posterUrl(event.getPosterUrl())
+                .seatingSchema(event.getSeatingSchema())
+                .performers(performerList != null ? performerList : java.util.List.of())
                 .createdAt(event.getCreatedAt())
                 .updatedAt(event.getUpdatedAt())
                 .build();

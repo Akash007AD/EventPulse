@@ -45,6 +45,9 @@ class EventControllerTest {
     @MockBean
     private EventService eventService;
 
+    @MockBean
+    private com.eventpulse.event.service.EventCalendarService calendarService;
+
     @Test
     @DisplayName("POST /api/v1/events should return 201 Created when request is valid")
     void createEvent_shouldReturn201() throws Exception {

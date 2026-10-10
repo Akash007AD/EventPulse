@@ -50,6 +50,9 @@ class EventSecurityTest {
     private EventService eventService;
 
     @MockBean
+    private com.eventpulse.event.service.EventCalendarService calendarService;
+
+    @MockBean
     private JwtDecoder jwtDecoder;
 
     @Test

@@ -21,6 +21,7 @@ public class TicketResponse {
     private String customerSubject;
     private String ticketNumber;
     private String qrCodeToken;
+    private String seatNumber;
     private TicketStatus status;
     private Instant checkedInAt;
     private String checkedInBy;
@@ -34,6 +35,7 @@ public class TicketResponse {
                 .customerSubject(ticket.getCustomerSubject())
                 .ticketNumber(ticket.getTicketNumber())
                 .qrCodeToken(ticket.getQrCodeToken())
+                .seatNumber(ticket.getSeatNumber())
                 .status(ticket.getStatus())
                 .checkedInAt(ticket.getCheckedInAt())
                 .checkedInBy(ticket.getCheckedInBy())
