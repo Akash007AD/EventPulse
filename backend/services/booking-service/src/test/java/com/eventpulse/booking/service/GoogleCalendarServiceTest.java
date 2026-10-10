@@ -2,7 +2,6 @@ package com.eventpulse.booking.service;
 
 import com.eventpulse.booking.client.EventCatalogClient;
 import com.eventpulse.booking.dto.EventSummaryDto;
-import com.eventpulse.booking.dto.GoogleCalendarEventResponse;
 import com.eventpulse.booking.entity.Booking;
 import com.eventpulse.booking.entity.BookingStatus;
 import com.eventpulse.booking.repository.BookingRepository;
@@ -17,7 +16,6 @@ import org.springframework.security.access.AccessDeniedException;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 

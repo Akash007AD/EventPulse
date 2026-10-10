@@ -6,7 +6,6 @@ import com.eventpulse.booking.dto.CreateBookingRequest;
 import com.eventpulse.booking.dto.EventSummaryDto;
 import com.eventpulse.booking.entity.Booking;
 import com.eventpulse.booking.entity.BookingStatus;
-import com.eventpulse.booking.exception.BookingNotFoundException;
 import com.eventpulse.booking.exception.ConcurrentBookingException;
 import com.eventpulse.booking.exception.EventValidationException;
 import com.eventpulse.booking.exception.InvalidBookingStateException;

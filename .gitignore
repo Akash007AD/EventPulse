@@ -53,7 +53,14 @@ Thumbs.db
 .env
 *.local
 
+# Frontend
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+
 # Antigravity internal documentation, project pack & AI logs
 docs/
 ai_logs/
 .ai/
+

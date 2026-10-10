@@ -1,6 +1,5 @@
 package com.eventpulse.analytics.service;
 
-import com.eventpulse.analytics.dto.EventAnalyticsResponse;
 import com.eventpulse.analytics.dto.PlatformOverviewResponse;
 import com.eventpulse.analytics.entity.EventAnalytics;
 import com.eventpulse.analytics.entity.ProcessedEvent;

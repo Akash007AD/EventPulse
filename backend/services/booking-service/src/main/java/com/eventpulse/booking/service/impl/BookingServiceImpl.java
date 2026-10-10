@@ -22,7 +22,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.eventpulse.booking.exception.ConcurrentBookingException;
 import com.eventpulse.booking.service.DistributedLockService;
 import com.eventpulse.booking.service.TicketHoldService;
 

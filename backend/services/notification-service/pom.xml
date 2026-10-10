@@ -46,6 +46,12 @@
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
+        <!-- Email Mail Sender (SMTP) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- RabbitMQ AMQP -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

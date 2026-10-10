@@ -48,35 +48,56 @@ EventPulse/
 - [x] **Milestone 8 — Observability, Distributed Tracing & Master Docker Blueprint**: Completed (Micrometer Brave distributed tracing across all microservices with traceId/spanId MDC log correlation, Prometheus metrics scraping at `/actuator/prometheus`, master 15-container `docker-compose.yml` blueprint with Prometheus, Grafana, Zipkin, Keycloak, MySQL, Redis, Kafka, RabbitMQ, and lightweight Dockerfiles for all 7 microservices).
 - [x] **Milestone 9 — Signed Ticket QR Generation, Gate Check-In Scanner & Email Delivery**: Completed (Cryptographically signed HMAC-SHA256 QR tokens `EP.<ticketId>.<bookingId>.<eventId>.<epoch>.<hex>`, Gate scanning endpoint `POST /api/v1/tickets/scan` restricted to ORGANIZER/ADMIN with anti-passback double-entry prevention and wrong event rejection, Branded HTML ticket email delivery via `notification-service`, and 15-min JWT session timeout with refresh token silent renewal).
 - [x] **Milestone 10 — Performer Rosters, Seating Schemas & Reservations, Direct Google Calendar Sync**: Completed (Organizer performer/cast management with headshot URLs, bios, and roles; dedicated event poster support; custom organizer seating layout schemas; customer seat selection workflow with exact seat identifiers printed on tickets and embedded in signed QR passes; direct Google Calendar API integration via OAuth2 `https://www.googleapis.com/auth/calendar.events` scope; and universal RFC 5545 `.ics` export with calendar invite links in emails).
+- [x] **Milestone 11 — Production DevOps, Executable Fat JAR Repackaging & Dual-Mode Orchestration**: Completed (Spring Boot maven plugin repackage goal configured across all microservices producing verified fat JARs; fully synchronized `.env` and `.env.example` configurations; root and backend `docker-compose.yml` for 15-container full stack orchestration; dedicated `scripts/` directory with `build-all`, `docker-start`, `docker-stop`, and `start-local-services`).
 
 
 ## Getting Started
 
 ### 1. Prerequisites
 - **JDK 21+** (JDK 25 verified)
-- **MySQL 8.0+** running on `localhost:3306`
+- **MySQL 8.0+** running on `localhost:3306` (or Docker)
 
 ### 2. Configure Backend Environment
-Navigate to `backend/` and configure environment variables or create `backend/.env` from `backend/.env.example`:
+Copy the environment template and adjust credentials if needed:
 ```powershell
-cd backend
-copy .env.example .env
-```
-Ensure your database credentials and connection URLs are configured.
-
-### 3. Run Build & Tests
-```powershell
-cd backend
-.\mvnw.cmd clean test
+copy backend\.env.example backend\.env
+copy backend\.env.example .env
 ```
 
-### 4. Run Services Locally
+### 3. Build & Package Microservices
+To package all microservices into executable Spring Boot fat JARs:
 ```powershell
-cd backend
-# Run Event Service (Port 8081)
-.\mvnw.cmd -pl services/event-service spring-boot:run
-
-# Run Booking Service (Port 8082)
-.\mvnw.cmd -pl services/booking-service spring-boot:run
+.\scripts\build-all.ps1
+# Or using Maven wrapper directly:
+cd backend; .\mvnw.cmd clean package -DskipTests
 ```
+
+### 4. Running the Full Stack (Dual Modes)
+
+#### Option A: 15-Container Docker Compose Stack
+```powershell
+# Using the helper script:
+.\scripts\docker-start.bat
+
+# Or using standard Docker CLI:
+docker compose up -d --build
+```
+This boots:
+- MySQL 8.0 (Port 3306) & Redis (Port 6379)
+- Keycloak 26 (Port 8180)
+- Kafka KRaft (Port 9092) & RabbitMQ (Ports 5672, 15672)
+- Prometheus (Port 9090), Grafana (Port 3000), Zipkin (Port 9411)
+- All 7 EventPulse microservices behind API Gateway (Port 8080)
+
+#### Option B: Local Standalone Execution (No Docker required)
+View status and execute individual fat JARs:
+```powershell
+.\scripts\start-local-services.ps1
+
+# Run individual services:
+java -jar backend\services\event-service\target\event-service-0.0.1-SNAPSHOT.jar
+java -jar backend\services\booking-service\target\booking-service-0.0.1-SNAPSHOT.jar
+java -jar backend\gateway\target\gateway-0.0.1-SNAPSHOT.jar
+```
+
 

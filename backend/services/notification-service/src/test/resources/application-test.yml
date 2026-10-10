@@ -39,6 +39,8 @@ management:
   health:
     rabbit:
       enabled: false
+    mail:
+      enabled: false
   endpoints:
     web:
       exposure:
