@@ -1,0 +1,54 @@
+server:
+  port: ${EVENT_SERVICE_PORT:8081}
+  shutdown: graceful
+
+spring:
+  application:
+    name: event-service
+  datasource:
+    url: jdbc:mysql://${EVENT_DB_HOST:localhost}:${EVENT_DB_PORT:3306}/${EVENT_DB_NAME:eventpulse_event}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+    username: ${EVENT_DB_USERNAME:root}
+    password: ${EVENT_DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      pool-name: EventServiceHikariCP
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.eventpulse.event: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
