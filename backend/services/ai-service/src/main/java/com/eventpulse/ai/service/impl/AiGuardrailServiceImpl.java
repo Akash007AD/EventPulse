@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -27,7 +28,13 @@ public class AiGuardrailServiceImpl implements AiGuardrailService {
             "jailbreak",
             "act as dan",
             "forget your rules",
-            "print system instructions"
+            "print system instructions",
+            "pretend you are",
+            "roleplay as",
+            "fictional story where",
+            "bedtime story",
+            "unfiltered mode",
+            "ignore all safety"
     );
 
     // Company-harming exploitation attempts (free tickets, price override, credential leaks, unauthorized refunds)
@@ -53,6 +60,23 @@ public class AiGuardrailServiceImpl implements AiGuardrailService {
             "customer pii",
             "other users' bookings",
             "change my role to admin"
+    );
+
+    // Output guardrail patterns: catches hallucinated discount codes, credential leaks, or price overrides
+    private static final List<Pattern> OUTPUT_SAFETY_PATTERNS = Arrays.asList(
+            // API key / secret leak detection
+            Pattern.compile("(?:rzp_(?:live|test)_[a-zA-Z0-9]+|sk_(?:live|test)_[a-zA-Z0-9]+)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("(?:password|secret_key|db_password)\\s*[:=]\\s*['\"]?\\S+", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("bearer\\s+[a-zA-Z0-9_.-]{25,}", Pattern.CASE_INSENSITIVE),
+            // Hallucinated coupon code generation detection
+            Pattern.compile("(?:use|apply|coupon|promo|discount)\\s+code[:\\s]+['\"]?[A-Z0-9_-]{3,}['\"]?", Pattern.CASE_INSENSITIVE),
+            // Price override promise detection
+            Pattern.compile("(?:price|cost)\\s+is\\s+(?:now\\s+)?(?:0|zero|free)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("(?:i have|i've)\\s+(?:set|overridden|reduced)\\s+(?:the\\s+)?price", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("(?:giving|granting)\\s+you\\s+(?:a\\s+)?free\\s+ticket", Pattern.CASE_INSENSITIVE),
+            // Unauthorized refund promise detection
+            Pattern.compile("(?:i have|i've)\\s+(?:approved|processed|initiated)\\s+your\\s+refund", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("refund\\s+has\\s+been\\s+(?:approved|processed|granted)", Pattern.CASE_INSENSITIVE)
     );
 
     @Override
@@ -83,5 +107,34 @@ public class AiGuardrailServiceImpl implements AiGuardrailService {
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<String> validateOutput(String generatedOutput) {
+        if (generatedOutput == null || generatedOutput.isBlank()) {
+            return Optional.empty();
+        }
+
+        for (Pattern pattern : OUTPUT_SAFETY_PATTERNS) {
+            if (pattern.matcher(generatedOutput).find()) {
+                log.warn("Output guardrail triggered: model output matched restricted pattern [{}]", pattern.pattern());
+                return Optional.of("I can help you explore published events and platform FAQs. Official ticket rates and standard cancellation policies apply to all reservations.");
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public String quarantinePrompt(String rawQuery) {
+        if (rawQuery == null) {
+            return "<untrusted_user_query></untrusted_user_query>";
+        }
+        // Neutralize attempts by an attacker to close the XML delimiter early
+        String sanitized = rawQuery
+                .replace("<untrusted_user_query>", "")
+                .replace("</untrusted_user_query>", "");
+
+        return "<untrusted_user_query>\n" + sanitized.trim() + "\n</untrusted_user_query>";
     }
 }
