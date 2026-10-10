@@ -37,7 +37,7 @@ EventPulse/
 - [x] **Milestone 2 — Booking Service**: Completed (MySQL 8 persistence, state machine, Event Service HTTP integration, hold windows, unit & integration tests).
 - [x] **Milestone 3 — Spring Cloud Gateway & Keycloak Identity**: Completed (Spring Cloud Gateway on port 8080, Keycloak OAuth2 Resource Server JWT validation, fine-grained RBAC with CUSTOMER/ORGANIZER/ADMIN roles, Google social identity brokering, and Organizer Onboarding flow).
 - [x] **Milestone 4 — Redis Caching & Distributed Holds**: Completed (Event Service Redis catalog caching with 10-min TTL, Redisson distributed concurrency locks, temporary ticket holds with automated TTL recovery, and HTTP 429 backpressure).
-- [ ] **Milestone 5 — Payment Service & Transactional Outbox (Razorpay)**: Pending.
+- [x] **Milestone 5 — Payment Service & Transactional Outbox (Razorpay)**: Completed (Payment Service on port 8083, Razorpay Orders API, HMAC-SHA256 signature verification, Idempotency-Key support, Transactional Outbox pattern, Webhook reconciler, and refunds).
 - [ ] **Milestone 6 — Kafka Streams & RabbitMQ Notifications**: Pending.
 - [ ] **Milestone 7 — Spring AI Event Discovery**: Pending.
 - [ ] **Milestone 8 — Observability, End-to-End Resilience & Docker Compose**: Pending.

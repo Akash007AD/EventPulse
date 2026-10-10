@@ -31,6 +31,7 @@
         <module>gateway</module>
         <module>services/event-service</module>
         <module>services/booking-service</module>
+        <module>services/payment-service</module>
     </modules>
 
     <dependencyManagement>
