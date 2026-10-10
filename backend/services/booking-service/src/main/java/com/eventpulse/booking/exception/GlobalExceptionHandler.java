@@ -42,6 +42,18 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(ConcurrentBookingException.class)
+    public ProblemDetail handleConcurrentBooking(ConcurrentBookingException ex, HttpServletRequest request) {
+        log.warn("Concurrent lock contention on booking request: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+        problem.setTitle("High Demand Contention");
+        problem.setType(URI.create("https://eventpulse.io/errors/high-demand"));
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "HIGH_DEMAND_CONCURRENCY");
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
     @ExceptionHandler(EventValidationException.class)
     public ProblemDetail handleEventValidation(EventValidationException ex, HttpServletRequest request) {
         log.warn("Event validation failed: {}", ex.getMessage());

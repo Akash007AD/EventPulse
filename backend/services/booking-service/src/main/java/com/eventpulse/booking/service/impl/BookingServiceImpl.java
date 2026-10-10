@@ -22,6 +22,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.eventpulse.booking.exception.ConcurrentBookingException;
+import com.eventpulse.booking.service.DistributedLockService;
+import com.eventpulse.booking.service.TicketHoldService;
+
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -34,6 +39,8 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
     private final EventCatalogClient eventCatalogClient;
+    private final DistributedLockService distributedLockService;
+    private final TicketHoldService ticketHoldService;
 
     @Value("${booking.hold-duration-minutes:15}")
     private int holdDurationMinutes;
@@ -42,37 +49,41 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse createBooking(CreateBookingRequest request, String customerSubject) {
         log.info("Initiating booking for event: {}, quantity: {}", request.getEventId(), request.getQuantity());
 
-        // 1. Verify Event existence and publication status via Event Service
-        EventSummaryDto eventSummary = eventCatalogClient.getPublishedEvent(request.getEventId())
-                .orElseThrow(() -> new EventValidationException("Event not found or not published: " + request.getEventId()));
+        String lockKey = "lock:event:" + request.getEventId();
+        return distributedLockService.executeWithLock(lockKey, 3, 5, () -> {
+            // 1. Verify Event existence and publication status via Event Service
+            EventSummaryDto eventSummary = eventCatalogClient.getPublishedEvent(request.getEventId())
+                    .orElseThrow(() -> new EventValidationException("Event not found or not published: " + request.getEventId()));
 
-        if (!eventSummary.getCurrency().equalsIgnoreCase(request.getCurrency())) {
-            throw new EventValidationException("Currency mismatch. Event uses: " + eventSummary.getCurrency() + ", but request specifies: " + request.getCurrency());
-        }
+            if (!eventSummary.getCurrency().equalsIgnoreCase(request.getCurrency())) {
+                throw new EventValidationException("Currency mismatch. Event uses: " + eventSummary.getCurrency() + ", but request specifies: " + request.getCurrency());
+            }
 
-        String effectiveCustomer = (customerSubject != null && !customerSubject.isBlank())
-                ? customerSubject.trim()
-                : (request.getCustomerSubject() != null && !request.getCustomerSubject().isBlank()
-                    ? request.getCustomerSubject().trim()
-                    : "customer-default");
+            String effectiveCustomer = (customerSubject != null && !customerSubject.isBlank())
+                    ? customerSubject.trim()
+                    : (request.getCustomerSubject() != null && !request.getCustomerSubject().isBlank()
+                        ? request.getCustomerSubject().trim()
+                        : "customer-default");
 
-        Instant now = Instant.now();
-        Instant expiresAt = now.plus(holdDurationMinutes, ChronoUnit.MINUTES);
+            Instant now = Instant.now();
+            Instant expiresAt = now.plus(holdDurationMinutes, ChronoUnit.MINUTES);
 
-        Booking booking = Booking.builder()
-                .id(UUID.randomUUID())
-                .customerSubject(effectiveCustomer)
-                .eventId(request.getEventId())
-                .quantity(request.getQuantity())
-                .amount(request.getAmount())
-                .currency(request.getCurrency().trim().toUpperCase())
-                .status(BookingStatus.PENDING_PAYMENT)
-                .expiresAt(expiresAt)
-                .build();
+            Booking booking = Booking.builder()
+                    .id(UUID.randomUUID())
+                    .customerSubject(effectiveCustomer)
+                    .eventId(request.getEventId())
+                    .quantity(request.getQuantity())
+                    .amount(request.getAmount())
+                    .currency(request.getCurrency().trim().toUpperCase())
+                    .status(BookingStatus.PENDING_PAYMENT)
+                    .expiresAt(expiresAt)
+                    .build();
 
-        Booking saved = bookingRepository.save(booking);
-        log.info("Booking created successfully with ID: {}, status: {}", saved.getId(), saved.getStatus());
-        return BookingResponse.fromEntity(saved);
+            Booking saved = bookingRepository.save(booking);
+            ticketHoldService.recordHold(saved.getId(), request.getEventId(), request.getQuantity(), Duration.ofMinutes(holdDurationMinutes));
+            log.info("Booking created successfully with ID: {}, status: {}", saved.getId(), saved.getStatus());
+            return BookingResponse.fromEntity(saved);
+        });
     }
 
     @Override
@@ -92,6 +103,7 @@ public class BookingServiceImpl implements BookingService {
             log.info("Booking {} hold has expired. Updating status to EXPIRED.", id);
             booking.setStatus(BookingStatus.EXPIRED);
             booking = bookingRepository.save(booking);
+            ticketHoldService.releaseHold(id);
         }
 
         return BookingResponse.fromEntity(booking);
@@ -125,6 +137,7 @@ public class BookingServiceImpl implements BookingService {
 
         booking.setStatus(BookingStatus.CANCELLED);
         Booking cancelled = bookingRepository.save(booking);
+        ticketHoldService.releaseHold(id);
         log.info("Booking {} cancelled successfully", id);
         return BookingResponse.fromEntity(cancelled);
     }
@@ -138,6 +151,7 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getStatus() == BookingStatus.PENDING_PAYMENT && Instant.now().isAfter(booking.getExpiresAt())) {
             booking.setStatus(BookingStatus.EXPIRED);
             bookingRepository.save(booking);
+            ticketHoldService.releaseHold(id);
             throw new InvalidBookingStateException("Cannot confirm booking because the reservation hold has expired.");
         }
 
@@ -147,6 +161,7 @@ public class BookingServiceImpl implements BookingService {
 
         booking.setStatus(BookingStatus.CONFIRMED);
         Booking confirmed = bookingRepository.save(booking);
+        ticketHoldService.releaseHold(id);
         log.info("Booking {} confirmed successfully", id);
         return BookingResponse.fromEntity(confirmed);
     }

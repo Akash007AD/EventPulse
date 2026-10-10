@@ -7,6 +7,7 @@ import com.eventpulse.booking.dto.EventSummaryDto;
 import com.eventpulse.booking.entity.Booking;
 import com.eventpulse.booking.entity.BookingStatus;
 import com.eventpulse.booking.exception.BookingNotFoundException;
+import com.eventpulse.booking.exception.ConcurrentBookingException;
 import com.eventpulse.booking.exception.EventValidationException;
 import com.eventpulse.booking.exception.InvalidBookingStateException;
 import com.eventpulse.booking.repository.BookingRepository;
@@ -25,10 +26,15 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,12 +47,24 @@ class BookingServiceTest {
     @Mock
     private EventCatalogClient eventCatalogClient;
 
+    @Mock
+    private DistributedLockService distributedLockService;
+
+    @Mock
+    private TicketHoldService ticketHoldService;
+
     private BookingServiceImpl bookingService;
 
     @BeforeEach
     void setUp() {
-        bookingService = new BookingServiceImpl(bookingRepository, eventCatalogClient);
+        bookingService = new BookingServiceImpl(bookingRepository, eventCatalogClient, distributedLockService, ticketHoldService);
         ReflectionTestUtils.setField(bookingService, "holdDurationMinutes", 15);
+
+        lenient().when(distributedLockService.executeWithLock(anyString(), anyLong(), anyLong(), any()))
+                .thenAnswer(inv -> {
+                    Supplier<?> supplier = inv.getArgument(3);
+                    return supplier != null ? supplier.get() : null;
+                });
     }
 
     @Test
@@ -202,5 +220,21 @@ class BookingServiceTest {
         assertThatThrownBy(() -> bookingService.confirmBooking(bookingId))
                 .isInstanceOf(InvalidBookingStateException.class)
                 .hasMessageContaining("reservation hold has expired");
+    }
+
+    @Test
+    @DisplayName("createBooking when lock cannot be acquired throws ConcurrentBookingException")
+    void createBooking_lockAcquisitionFails_throwsConcurrentException() {
+        UUID eventId = UUID.randomUUID();
+        CreateBookingRequest request = new CreateBookingRequest(
+                eventId, 2, new BigDecimal("998.00"), "INR", "cust-1"
+        );
+
+        doThrow(new ConcurrentBookingException("High demand detected for event " + eventId + ". Please retry your reservation."))
+                .when(distributedLockService).executeWithLock(anyString(), anyLong(), anyLong(), any());
+
+        assertThatThrownBy(() -> bookingService.createBooking(request, "cust-1"))
+                .isInstanceOf(ConcurrentBookingException.class)
+                .hasMessageContaining("High demand detected");
     }
 }

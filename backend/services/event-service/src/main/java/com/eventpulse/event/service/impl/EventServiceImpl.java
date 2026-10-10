@@ -16,6 +16,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,6 +78,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "published_events", key = "#id")
     public EventResponse getPublishedEventById(UUID id) {
         log.debug("Fetching published event with ID: {}", id);
         return eventRepository.findByIdAndStatus(id, EventStatus.PUBLISHED)
@@ -83,11 +87,19 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "events", key = "#id"),
+            @CacheEvict(value = "published_events", key = "#id")
+    })
     public EventResponse updateEvent(UUID id, UpdateEventRequest request) {
         return updateEvent(id, request, null, true);
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "events", key = "#id"),
+            @CacheEvict(value = "published_events", key = "#id")
+    })
     public EventResponse updateEvent(UUID id, UpdateEventRequest request, String callerSubject, boolean isAdmin) {
         log.info("Updating event with ID: {} by caller: {} (isAdmin: {})", id, callerSubject, isAdmin);
         Event event = eventRepository.findById(id)
@@ -117,11 +129,19 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "events", key = "#id"),
+            @CacheEvict(value = "published_events", key = "#id")
+    })
     public EventResponse archiveEvent(UUID id) {
         return archiveEvent(id, null, true);
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "events", key = "#id"),
+            @CacheEvict(value = "published_events", key = "#id")
+    })
     public EventResponse archiveEvent(UUID id, String callerSubject, boolean isAdmin) {
         log.info("Archiving event with ID: {} by caller: {} (isAdmin: {})", id, callerSubject, isAdmin);
         Event event = eventRepository.findById(id)

@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.context.annotation.Import;
+import com.eventpulse.booking.config.TestRedisConfig;
 import com.eventpulse.booking.config.TestSecurityConfig;
 
 import java.math.BigDecimal;
@@ -34,7 +35,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, TestRedisConfig.class})
 class BookingIntegrationTest {
 
     @LocalServerPort

@@ -17,6 +17,10 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  data:
+    redis:
+      repositories:
+        enabled: false
 
 event-service:
   base-url: http://localhost:8081

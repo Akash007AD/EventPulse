@@ -37,6 +37,11 @@ spring:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/eventpulse}
           jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/eventpulse/protocol/openid-connect/certs}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
 
 event-service:
   base-url: ${EVENT_SERVICE_URL:http://localhost:8081}

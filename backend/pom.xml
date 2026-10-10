@@ -24,6 +24,7 @@
         <spring-cloud.version>2024.0.0</spring-cloud.version>
         <testcontainers.version>1.20.4</testcontainers.version>
         <lombok.version>1.18.38</lombok.version>
+        <redisson.version>3.45.0</redisson.version>
     </properties>
 
     <modules>
@@ -72,6 +73,13 @@
                 <groupId>me.paulschwarz</groupId>
                 <artifactId>springboot3-dotenv</artifactId>
                 <version>5.1.0</version>
+            </dependency>
+
+            <!-- Redisson Distributed Locking -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson</artifactId>
+                <version>${redisson.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

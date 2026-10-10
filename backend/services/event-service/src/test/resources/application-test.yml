@@ -17,6 +17,12 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  cache:
+    type: simple
+  data:
+    redis:
+      repositories:
+        enabled: false
 
 logging:
   level:
