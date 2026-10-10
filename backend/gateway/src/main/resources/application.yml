@@ -6,27 +6,72 @@ spring:
     name: api-gateway
   cloud:
     gateway:
+      httpclient:
+        connect-timeout: 3000
+        response-timeout: 5s
       routes:
         - id: event-service-route
           uri: ${EVENT_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/v1/events,/api/v1/events/**,/api/v1/organizers,/api/v1/organizers/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: eventServiceCircuitBreaker
+                fallbackUri: forward:/fallback
         - id: booking-service-route
           uri: ${BOOKING_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/v1/bookings,/api/v1/bookings/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: bookingServiceCircuitBreaker
+                fallbackUri: forward:/fallback
         - id: payment-service-route
           uri: ${PAYMENT_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/v1/payments,/api/v1/payments/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: paymentServiceCircuitBreaker
+                fallbackUri: forward:/fallback
         - id: analytics-service-route
           uri: ${ANALYTICS_SERVICE_URL:http://localhost:8085}
           predicates:
             - Path=/api/v1/analytics,/api/v1/analytics/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: analyticsServiceCircuitBreaker
+                fallbackUri: forward:/fallback
         - id: notification-service-route
           uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
           predicates:
             - Path=/api/v1/notifications,/api/v1/notifications/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: notificationServiceCircuitBreaker
+                fallbackUri: forward:/fallback
+
+eventpulse:
+  ratelimit:
+    enabled: true
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 5s
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
