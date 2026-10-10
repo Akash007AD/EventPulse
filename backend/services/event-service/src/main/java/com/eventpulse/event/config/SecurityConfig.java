@@ -46,6 +46,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/events/**").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/events/**").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/events/**").hasAnyRole("ORGANIZER", "ADMIN")
+                        // Organizer Onboarding & Admin review
+                        .requestMatchers("/api/v1/organizers/applications/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/organizers/**").authenticated()
                         // Any other request must be authenticated
                         .anyRequest().authenticated()
                 )

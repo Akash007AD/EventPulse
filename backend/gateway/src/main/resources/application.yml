@@ -10,7 +10,7 @@ spring:
         - id: event-service-route
           uri: ${EVENT_SERVICE_URL:http://localhost:8081}
           predicates:
-            - Path=/api/v1/events,/api/v1/events/**
+            - Path=/api/v1/events,/api/v1/events/**,/api/v1/organizers,/api/v1/organizers/**
         - id: booking-service-route
           uri: ${BOOKING_SERVICE_URL:http://localhost:8082}
           predicates:

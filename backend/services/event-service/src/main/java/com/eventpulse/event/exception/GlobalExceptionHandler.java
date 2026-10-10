@@ -42,6 +42,42 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(OrganizerApplicationNotFoundException.class)
+    public ProblemDetail handleOrganizerApplicationNotFoundException(OrganizerApplicationNotFoundException ex, HttpServletRequest request) {
+        log.warn("Organizer application not found: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Organizer Application Not Found");
+        problem.setType(URI.create("https://eventpulse.io/errors/not-found"));
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "ORGANIZER_APPLICATION_NOT_FOUND");
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
+    @ExceptionHandler(DuplicateOrganizerApplicationException.class)
+    public ProblemDetail handleDuplicateOrganizerApplicationException(DuplicateOrganizerApplicationException ex, HttpServletRequest request) {
+        log.warn("Duplicate organizer application: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Duplicate Application");
+        problem.setType(URI.create("https://eventpulse.io/errors/conflict"));
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "DUPLICATE_APPLICATION");
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidOrganizerApplicationStateException.class)
+    public ProblemDetail handleInvalidOrganizerApplicationStateException(InvalidOrganizerApplicationStateException ex, HttpServletRequest request) {
+        log.warn("Invalid organizer application state: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Invalid Application State");
+        problem.setType(URI.create("https://eventpulse.io/errors/conflict"));
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "INVALID_APPLICATION_STATE");
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationException(MethodArgumentNotValidException ex, HttpServletRequest request) {
         log.warn("Validation failed for request [{}]: {} error(s)", request.getRequestURI(), ex.getErrorCount());
