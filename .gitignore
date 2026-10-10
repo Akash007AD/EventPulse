@@ -53,5 +53,7 @@ Thumbs.db
 .env
 *.local
 
-# Antigravity internal documentation & project pack
+# Antigravity internal documentation, project pack & AI logs
 docs/
+ai_logs/
+.ai/
