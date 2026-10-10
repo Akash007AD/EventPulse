@@ -42,6 +42,10 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         // Booking creation requires CUSTOMER or ADMIN role
                         .requestMatchers(HttpMethod.POST, "/api/v1/bookings").hasAnyRole("CUSTOMER", "ADMIN")
+                        // Ticket check-in scanning requires ORGANIZER or ADMIN role
+                        .requestMatchers(HttpMethod.POST, "/api/v1/tickets/scan").hasAnyRole("ORGANIZER", "ADMIN")
+                        // Ticket viewing requires authenticated user (CUSTOMER, ORGANIZER, or ADMIN)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/tickets/**").hasAnyRole("CUSTOMER", "ORGANIZER", "ADMIN")
                         // Any other request must be authenticated
                         .anyRequest().authenticated()
                 )

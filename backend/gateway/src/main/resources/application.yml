@@ -22,7 +22,7 @@ spring:
         - id: booking-service-route
           uri: ${BOOKING_SERVICE_URL:http://localhost:8082}
           predicates:
-            - Path=/api/v1/bookings,/api/v1/bookings/**
+            - Path=/api/v1/bookings,/api/v1/bookings/**,/api/v1/tickets,/api/v1/tickets/**
           filters:
             - name: CircuitBreaker
               args:

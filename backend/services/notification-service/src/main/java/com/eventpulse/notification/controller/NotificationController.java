@@ -28,6 +28,7 @@ import java.util.UUID;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final com.eventpulse.notification.service.TicketEmailService ticketEmailService;
 
     @GetMapping("/{id}")
     public ResponseEntity<NotificationResponse> getNotificationById(@PathVariable UUID id) {
@@ -53,6 +54,14 @@ public class NotificationController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SERVICE')")
     public ResponseEntity<NotificationResponse> sendNotificationDirect(@RequestBody NotificationPayload payload) {
         NotificationResponse response = notificationService.sendNotification(payload);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/tickets/send")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SERVICE', 'ORGANIZER')")
+    public ResponseEntity<NotificationResponse> sendTicketDeliveryEmail(
+            @jakarta.validation.Valid @RequestBody com.eventpulse.notification.dto.SendTicketEmailRequest request) {
+        NotificationResponse response = ticketEmailService.sendTicketDeliveryEmail(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

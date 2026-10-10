@@ -53,11 +53,14 @@ class BookingServiceTest {
     @Mock
     private TicketHoldService ticketHoldService;
 
+    @Mock
+    private TicketService ticketService;
+
     private BookingServiceImpl bookingService;
 
     @BeforeEach
     void setUp() {
-        bookingService = new BookingServiceImpl(bookingRepository, eventCatalogClient, distributedLockService, ticketHoldService);
+        bookingService = new BookingServiceImpl(bookingRepository, eventCatalogClient, distributedLockService, ticketHoldService, ticketService);
         ReflectionTestUtils.setField(bookingService, "holdDurationMinutes", 15);
 
         lenient().when(distributedLockService.executeWithLock(anyString(), anyLong(), anyLong(), any()))
@@ -175,6 +178,7 @@ class BookingServiceTest {
         BookingResponse response = bookingService.cancelBooking(bookingId, "cust-1");
 
         assertThat(response.getStatus()).isEqualTo(BookingStatus.CANCELLED);
+        verify(ticketService).cancelTicketsForBooking(bookingId);
     }
 
     @Test
@@ -198,6 +202,7 @@ class BookingServiceTest {
         BookingResponse response = bookingService.confirmBooking(bookingId);
 
         assertThat(response.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
+        verify(ticketService).issueTicketsForBooking(any(Booking.class));
     }
 
     @Test

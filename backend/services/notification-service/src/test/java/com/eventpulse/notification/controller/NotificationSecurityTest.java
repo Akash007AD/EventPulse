@@ -41,6 +41,9 @@ class NotificationSecurityTest {
     private NotificationService notificationService;
 
     @MockBean
+    private com.eventpulse.notification.service.TicketEmailService ticketEmailService;
+
+    @MockBean
     private JwtDecoder jwtDecoder;
 
     @Test
@@ -116,5 +119,71 @@ class NotificationSecurityTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SENT"))
                 .andExpect(jsonPath("$.attemptCount").value(2));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/notifications/tickets/send with CUSTOMER role returns 403 Forbidden")
+    void sendTicketEmail_customerRole_returns403() throws Exception {
+        String jsonPayload = """
+                {
+                    "recipientSubject": "cust-1",
+                    "recipientEmail": "cust@example.com",
+                    "bookingId": "00000000-0000-0000-0000-000000000001",
+                    "eventId": "00000000-0000-0000-0000-000000000002",
+                    "eventTitle": "Spring AI Summit",
+                    "tickets": [
+                        {
+                            "ticketId": "00000000-0000-0000-0000-000000000003",
+                            "ticketNumber": "TKT-001",
+                            "qrCodeToken": "EP.token.abc"
+                        }
+                    ]
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/notifications/tickets/send")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(jsonPayload)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_CUSTOMER"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/notifications/tickets/send with ORGANIZER role returns 201 Created")
+    void sendTicketEmail_organizerRole_returns201() throws Exception {
+        String jsonPayload = """
+                {
+                    "recipientSubject": "cust-1",
+                    "recipientEmail": "cust@example.com",
+                    "bookingId": "00000000-0000-0000-0000-000000000001",
+                    "eventId": "00000000-0000-0000-0000-000000000002",
+                    "eventTitle": "Spring AI Summit",
+                    "tickets": [
+                        {
+                            "ticketId": "00000000-0000-0000-0000-000000000003",
+                            "ticketNumber": "TKT-001",
+                            "qrCodeToken": "EP.token.abc"
+                        }
+                    ]
+                }
+                """;
+
+        NotificationResponse response = NotificationResponse.builder()
+                .id(UUID.randomUUID())
+                .recipientSubject("cust-1")
+                .notificationType(NotificationType.TICKET_DELIVERY)
+                .title("Your EventPulse Tickets")
+                .status(NotificationStatus.SENT)
+                .attemptCount(1)
+                .build();
+
+        when(ticketEmailService.sendTicketDeliveryEmail(org.mockito.ArgumentMatchers.any())).thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/notifications/tickets/send")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(jsonPayload)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ORGANIZER"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.notificationType").value("TICKET_DELIVERY"));
     }
 }

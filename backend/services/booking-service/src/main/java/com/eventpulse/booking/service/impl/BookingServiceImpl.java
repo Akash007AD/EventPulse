@@ -41,6 +41,7 @@ public class BookingServiceImpl implements BookingService {
     private final EventCatalogClient eventCatalogClient;
     private final DistributedLockService distributedLockService;
     private final TicketHoldService ticketHoldService;
+    private final com.eventpulse.booking.service.TicketService ticketService;
 
     @Value("${booking.hold-duration-minutes:15}")
     private int holdDurationMinutes;
@@ -138,7 +139,8 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(BookingStatus.CANCELLED);
         Booking cancelled = bookingRepository.save(booking);
         ticketHoldService.releaseHold(id);
-        log.info("Booking {} cancelled successfully", id);
+        ticketService.cancelTicketsForBooking(id);
+        log.info("Booking {} and associated tickets cancelled successfully", id);
         return BookingResponse.fromEntity(cancelled);
     }
 
@@ -162,7 +164,8 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(BookingStatus.CONFIRMED);
         Booking confirmed = bookingRepository.save(booking);
         ticketHoldService.releaseHold(id);
-        log.info("Booking {} confirmed successfully", id);
+        ticketService.issueTicketsForBooking(confirmed);
+        log.info("Booking {} confirmed and tickets issued successfully", id);
         return BookingResponse.fromEntity(confirmed);
     }
 }
