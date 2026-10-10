@@ -23,9 +23,13 @@ EventPulse/
 │   ├── pom.xml                               # Backend aggregator POM
 │   ├── mvnw / mvnw.cmd                       # Maven Wrapper
 │   ├── .env.example                          # Environment configuration template
+│   ├── gateway/                              # Milestone 3: Spring Cloud Gateway (Port 8080)
 │   └── services/
 │       ├── event-service/                    # Milestone 1: Event Service (Port 8081)
-│       └── booking-service/                  # Milestone 2: Booking Service (Port 8082)
+│       ├── booking-service/                  # Milestone 2: Booking Service (Port 8082)
+│       ├── payment-service/                  # Milestone 5: Payment Service (Port 8083)
+│       ├── notification-service/             # Milestone 6: Notification Service (Port 8084)
+│       └── analytics-service/                # Milestone 6: Analytics Service (Port 8085)
 ├── frontend/                                 # Web frontend application (upcoming)
 ├── docs/                                     # Architecture & design documentation
 └── .gitignore
@@ -38,7 +42,7 @@ EventPulse/
 - [x] **Milestone 3 — Spring Cloud Gateway & Keycloak Identity**: Completed (Spring Cloud Gateway on port 8080, Keycloak OAuth2 Resource Server JWT validation, fine-grained RBAC with CUSTOMER/ORGANIZER/ADMIN roles, Google social identity brokering, and Organizer Onboarding flow).
 - [x] **Milestone 4 — Redis Caching & Distributed Holds**: Completed (Event Service Redis catalog caching with 10-min TTL, Redisson distributed concurrency locks, temporary ticket holds with automated TTL recovery, and HTTP 429 backpressure).
 - [x] **Milestone 5 — Payment Service & Transactional Outbox (Razorpay)**: Completed (Payment Service on port 8083, Razorpay Orders API, HMAC-SHA256 signature verification, Idempotency-Key support, Transactional Outbox pattern, Webhook reconciler, and refunds).
-- [ ] **Milestone 6 — Kafka Streams & RabbitMQ Notifications**: Pending.
+- [x] **Milestone 6 — Kafka Streams & RabbitMQ Notifications**: Completed (KRaft Apache Kafka domain event streams, Analytics Service on port 8085 with idempotent projection deduplication and aggregate metrics, RabbitMQ on port 8084 with dead-letter exchange/queue, email/SMS dispatching, and retry policies).
 - [ ] **Milestone 7 — Spring AI Event Discovery**: Pending.
 - [ ] **Milestone 8 — Observability, End-to-End Resilience & Docker Compose**: Pending.
 

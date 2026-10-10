@@ -32,6 +32,8 @@
         <module>services/event-service</module>
         <module>services/booking-service</module>
         <module>services/payment-service</module>
+        <module>services/analytics-service</module>
+        <module>services/notification-service</module>
     </modules>
 
     <dependencyManagement>

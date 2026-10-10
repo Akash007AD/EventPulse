@@ -19,6 +19,14 @@ spring:
           uri: ${PAYMENT_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/v1/payments,/api/v1/payments/**
+        - id: analytics-service-route
+          uri: ${ANALYTICS_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/v1/analytics,/api/v1/analytics/**
+        - id: notification-service-route
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/notifications,/api/v1/notifications/**
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
