@@ -17,5 +17,9 @@ public interface EventService {
 
     EventResponse updateEvent(UUID id, UpdateEventRequest request);
 
+    EventResponse updateEvent(UUID id, UpdateEventRequest request, String callerSubject, boolean isAdmin);
+
     EventResponse archiveEvent(UUID id);
+
+    EventResponse archiveEvent(UUID id, String callerSubject, boolean isAdmin);
 }

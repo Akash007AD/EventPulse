@@ -22,6 +22,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Import;
+import com.eventpulse.booking.config.TestSecurityConfig;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -32,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+@Import(TestSecurityConfig.class)
 class BookingIntegrationTest {
 
     @LocalServerPort
@@ -71,6 +74,7 @@ class BookingIntegrationTest {
         );
 
         HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("mock-jwt-token");
         headers.set("X-Customer-Subject", "user-john");
 
         ResponseEntity<BookingResponse> createResponse = restTemplate.postForEntity(

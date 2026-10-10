@@ -81,10 +81,10 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new BookingNotFoundException(id));
 
-        // Ownership verification placeholder (Keycloak integration in Milestone 3)
+        // Ownership verification (Keycloak OAuth2 JWT subject)
         if (customerSubject != null && !customerSubject.isBlank() && !customerSubject.equals(booking.getCustomerSubject())) {
             log.warn("Customer {} attempted unauthorized access to booking {}", customerSubject, id);
-            throw new BookingNotFoundException(id);
+            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to access this booking.");
         }
 
         // Lazy hold expiry check
@@ -116,7 +116,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new BookingNotFoundException(id));
 
         if (customerSubject != null && !customerSubject.isBlank() && !customerSubject.equals(booking.getCustomerSubject())) {
-            throw new BookingNotFoundException(id);
+            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to cancel this booking.");
         }
 
         if (!booking.getStatus().canTransitionTo(BookingStatus.CANCELLED)) {

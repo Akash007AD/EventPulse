@@ -84,9 +84,16 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventResponse updateEvent(UUID id, UpdateEventRequest request) {
-        log.info("Updating event with ID: {}", id);
+        return updateEvent(id, request, null, true);
+    }
+
+    @Override
+    public EventResponse updateEvent(UUID id, UpdateEventRequest request, String callerSubject, boolean isAdmin) {
+        log.info("Updating event with ID: {} by caller: {} (isAdmin: {})", id, callerSubject, isAdmin);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
+
+        validateOwnership(event, callerSubject, isAdmin);
 
         if (event.getStatus() == EventStatus.ARCHIVED || event.getStatus() == EventStatus.CANCELLED) {
             throw new InvalidEventStateException("Cannot update event in " + event.getStatus() + " status");
@@ -111,13 +118,31 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventResponse archiveEvent(UUID id) {
-        log.info("Archiving event with ID: {}", id);
+        return archiveEvent(id, null, true);
+    }
+
+    @Override
+    public EventResponse archiveEvent(UUID id, String callerSubject, boolean isAdmin) {
+        log.info("Archiving event with ID: {} by caller: {} (isAdmin: {})", id, callerSubject, isAdmin);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
+
+        validateOwnership(event, callerSubject, isAdmin);
 
         event.setStatus(EventStatus.ARCHIVED);
         Event archived = eventRepository.save(event);
         log.info("Event {} archived successfully", id);
         return EventResponse.fromEntity(archived);
+    }
+
+    private void validateOwnership(Event event, String callerSubject, boolean isAdmin) {
+        if (isAdmin) {
+            return;
+        }
+        if (callerSubject != null && !callerSubject.isBlank()) {
+            if (event.getOrganizerSubject() != null && !event.getOrganizerSubject().equals(callerSubject)) {
+                throw new org.springframework.security.access.AccessDeniedException("You do not have permission to modify this event.");
+            }
+        }
     }
 }
