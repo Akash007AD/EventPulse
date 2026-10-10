@@ -88,6 +88,18 @@
         </dependencies>
     </dependencyManagement>
 
+    <dependencies>
+        <!-- Milestone 8: Distributed Tracing & Prometheus Metrics across all microservices -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+    </dependencies>
+
     <build>
         <pluginManagement>
             <plugins>

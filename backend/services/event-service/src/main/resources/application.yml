@@ -47,17 +47,24 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: when_authorized
       probes:
         enabled: true
+    prometheus:
+      enabled: true
   info:
     env:
       enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
 
 logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
   level:
     root: INFO
     com.eventpulse.event: DEBUG

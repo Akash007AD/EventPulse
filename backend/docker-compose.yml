@@ -1,4 +1,7 @@
 services:
+  # -------------------------------------------------------------
+  # Core Infrastructure Layer
+  # -------------------------------------------------------------
   mysql:
     image: mysql:8.0
     container_name: eventpulse-mysql
@@ -66,10 +69,10 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
@@ -94,11 +97,215 @@ services:
     networks:
       - eventpulse-network
 
+  # -------------------------------------------------------------
+  # Observability & Distributed Tracing Layer (Milestone 8)
+  # -------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: eventpulse-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - eventpulse-network
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: eventpulse-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - eventpulse-network
+
+  zipkin:
+    image: openzipkin/zipkin:3.4
+    container_name: eventpulse-zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - eventpulse-network
+
+  # -------------------------------------------------------------
+  # EventPulse Microservices Backend Application Layer
+  # -------------------------------------------------------------
+  api-gateway:
+    build:
+      context: ./gateway
+    container_name: eventpulse-api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - EVENT_SERVICE_URL=http://event-service:8081
+      - BOOKING_SERVICE_URL=http://booking-service:8082
+      - PAYMENT_SERVICE_URL=http://payment-service:8083
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8084
+      - ANALYTICS_SERVICE_URL=http://analytics-service:8085
+      - AI_SERVICE_URL=http://ai-service:8086
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/eventpulse
+      - ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      - keycloak
+      - event-service
+      - booking-service
+      - payment-service
+    networks:
+      - eventpulse-network
+
+  event-service:
+    build:
+      context: ./services/event-service
+    container_name: eventpulse-event-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVER_PORT=8081
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/eventpulse_event?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/eventpulse
+      - ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - eventpulse-network
+
+  booking-service:
+    build:
+      context: ./services/booking-service
+    container_name: eventpulse-booking-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SERVER_PORT=8082
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/eventpulse_booking?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - EVENTPULSE_EVENT_SERVICE_URL=http://event-service:8081
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/eventpulse
+      - ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      event-service:
+        condition: service_started
+    networks:
+      - eventpulse-network
+
+  payment-service:
+    build:
+      context: ./services/payment-service
+    container_name: eventpulse-payment-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SERVER_PORT=8083
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/eventpulse_payment?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - EVENTPULSE_BOOKING_SERVICE_URL=http://booking-service:8082
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-rzp_test_placeholder}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET:-rzp_secret_placeholder}
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/eventpulse
+      - ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      mysql:
+        condition: service_healthy
+      booking-service:
+        condition: service_started
+    networks:
+      - eventpulse-network
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+    container_name: eventpulse-notification-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SERVER_PORT=8084
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/eventpulse_notification?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/eventpulse
+      - ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - eventpulse-network
+
+  analytics-service:
+    build:
+      context: ./services/analytics-service
+    container_name: eventpulse-analytics-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SERVER_PORT=8085
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/eventpulse_analytics?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/eventpulse
+      - ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - eventpulse-network
+
+  ai-service:
+    build:
+      context: ./services/ai-service
+    container_name: eventpulse-ai-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SERVER_PORT=8086
+      - EVENTPULSE_EVENT_SERVICE_URL=http://event-service:8081
+      - GROQ_API_KEY=${GROQ_API_KEY:-mock}
+      - GROQ_BASE_URL=${GROQ_BASE_URL:-https://api.groq.com/openai/v1}
+      - GROQ_MODEL=${GROQ_MODEL:-gpt-oss-20b}
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/eventpulse
+      - ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      event-service:
+        condition: service_started
+    networks:
+      - eventpulse-network
+
 volumes:
   mysql_data:
   redis_data:
   kafka_data:
   rabbitmq_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   eventpulse-network:

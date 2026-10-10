@@ -44,8 +44,8 @@ EventPulse/
 - [x] **Milestone 4 — Redis Caching & Distributed Holds**: Completed (Event Service Redis catalog caching with 10-min TTL, Redisson distributed concurrency locks, temporary ticket holds with automated TTL recovery, and HTTP 429 backpressure).
 - [x] **Milestone 5 — Payment Service & Transactional Outbox (Razorpay)**: Completed (Payment Service on port 8083, Razorpay Orders API, HMAC-SHA256 signature verification, Idempotency-Key support, Transactional Outbox pattern, Webhook reconciler, and refunds).
 - [x] **Milestone 6 — Kafka Streams & RabbitMQ Notifications**: Completed (KRaft Apache Kafka domain event streams, Analytics Service on port 8085 with idempotent projection deduplication and aggregate metrics, RabbitMQ on port 8084 with dead-letter exchange/queue, email/SMS dispatching, and retry policies).
-- [x] **Milestone 7 — Spring AI Event Discovery & Customer Support Assistant**: Completed (AI Discovery & Support Assistant on port 8086 powered by Groq LPU inference, gpt-oss-20b open-weights model, zero-hallucination real event grounding via Event Service, authoritative company policy & FAQ support for cancellations/refunds/holds/payments, and perimeter prompt-injection guardrails).
-- [ ] **Milestone 8 — Observability, End-to-End Resilience & Docker Compose**: Pending.
+- [x] **Milestone 7 — Spring AI Event Discovery & Customer Support Assistant**: Completed (AI Discovery & Support Assistant on port 8086 powered by Groq LPU inference, gpt-oss-20b open-weights model, zero-hallucination real event grounding via Event Service, authoritative company policy & FAQ support for cancellations/refunds/holds/payments, and 5-layer Defense-in-Depth guardrails).
+- [x] **Milestone 8 — Observability, Distributed Tracing & Master Docker Blueprint**: Completed (Micrometer Brave distributed tracing across all microservices with traceId/spanId MDC log correlation, Prometheus metrics scraping at `/actuator/prometheus`, master 15-container `docker-compose.yml` blueprint with Prometheus, Grafana, Zipkin, Keycloak, MySQL, Redis, Kafka, RabbitMQ, and lightweight Dockerfiles for all 7 microservices).
 
 ## Getting Started
 
