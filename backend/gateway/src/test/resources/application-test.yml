@@ -1,0 +1,8 @@
+server:
+  port: 0
+
+logging:
+  level:
+    org.springframework.web.cors: TRACE
+    org.springframework.cloud.gateway: TRACE
+    com.eventpulse.gateway: TRACE

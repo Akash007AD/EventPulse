@@ -1,0 +1,34 @@
+server:
+  port: ${GATEWAY_PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: event-service-route
+          uri: ${EVENT_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/events,/api/v1/events/**
+        - id: booking-service-route
+          uri: ${BOOKING_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/bookings,/api/v1/bookings/**
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: when_authorized
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.eventpulse.gateway: DEBUG

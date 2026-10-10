@@ -21,17 +21,28 @@
 
         <!-- Spring Boot and Dependency Versions -->
         <spring-boot.version>3.4.3</spring-boot.version>
+        <spring-cloud.version>2024.0.0</spring-cloud.version>
         <testcontainers.version>1.20.4</testcontainers.version>
         <lombok.version>1.18.38</lombok.version>
     </properties>
 
     <modules>
+        <module>gateway</module>
         <module>services/event-service</module>
         <module>services/booking-service</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <!-- Spring Cloud Dependencies BOM -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- Spring Boot Dependencies BOM -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
