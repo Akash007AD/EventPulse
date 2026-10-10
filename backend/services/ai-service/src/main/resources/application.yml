@@ -1,0 +1,38 @@
+server:
+  port: ${AI_DISCOVERY_SERVICE_PORT:8086}
+
+spring:
+  application:
+    name: ai-service
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/eventpulse}
+
+eventpulse:
+  ai:
+    groq:
+      base-url: ${GROQ_BASE_URL:https://api.groq.com/openai/v1}
+      api-key: ${GROQ_API_KEY:mock-key}
+      model: ${GROQ_MODEL:gpt-oss-20b}
+      connect-timeout-ms: 4000
+      read-timeout-ms: 15000
+    guardrails:
+      max-query-length: 500
+  event-service:
+    url: ${EVENT_SERVICE_URL:http://localhost:8081}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+logging:
+  level:
+    com.eventpulse.ai: DEBUG

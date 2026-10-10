@@ -1,0 +1,35 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: ai-service-test
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/eventpulse
+
+eventpulse:
+  ai:
+    groq:
+      base-url: http://localhost:9999/openai/v1
+      api-key: mock-test-key
+      model: gpt-oss-20b
+      connect-timeout-ms: 1000
+      read-timeout-ms: 2000
+    guardrails:
+      max-query-length: 500
+  event-service:
+    url: http://localhost:8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.eventpulse.ai: DEBUG

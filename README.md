@@ -29,7 +29,8 @@ EventPulse/
 │       ├── booking-service/                  # Milestone 2: Booking Service (Port 8082)
 │       ├── payment-service/                  # Milestone 5: Payment Service (Port 8083)
 │       ├── notification-service/             # Milestone 6: Notification Service (Port 8084)
-│       └── analytics-service/                # Milestone 6: Analytics Service (Port 8085)
+│       ├── analytics-service/                # Milestone 6: Analytics Service (Port 8085)
+│       └── ai-service/                       # Milestone 7: AI Discovery & Support Service (Port 8086)
 ├── frontend/                                 # Web frontend application (upcoming)
 ├── docs/                                     # Architecture & design documentation
 └── .gitignore
@@ -43,7 +44,7 @@ EventPulse/
 - [x] **Milestone 4 — Redis Caching & Distributed Holds**: Completed (Event Service Redis catalog caching with 10-min TTL, Redisson distributed concurrency locks, temporary ticket holds with automated TTL recovery, and HTTP 429 backpressure).
 - [x] **Milestone 5 — Payment Service & Transactional Outbox (Razorpay)**: Completed (Payment Service on port 8083, Razorpay Orders API, HMAC-SHA256 signature verification, Idempotency-Key support, Transactional Outbox pattern, Webhook reconciler, and refunds).
 - [x] **Milestone 6 — Kafka Streams & RabbitMQ Notifications**: Completed (KRaft Apache Kafka domain event streams, Analytics Service on port 8085 with idempotent projection deduplication and aggregate metrics, RabbitMQ on port 8084 with dead-letter exchange/queue, email/SMS dispatching, and retry policies).
-- [ ] **Milestone 7 — Spring AI Event Discovery**: Pending.
+- [x] **Milestone 7 — Spring AI Event Discovery & Customer Support Assistant**: Completed (AI Discovery & Support Assistant on port 8086 powered by Groq LPU inference, gpt-oss-20b open-weights model, zero-hallucination real event grounding via Event Service, authoritative company policy & FAQ support for cancellations/refunds/holds/payments, and perimeter prompt-injection guardrails).
 - [ ] **Milestone 8 — Observability, End-to-End Resilience & Docker Compose**: Pending.
 
 ## Getting Started

@@ -55,6 +55,15 @@ spring:
               args:
                 name: notificationServiceCircuitBreaker
                 fallbackUri: forward:/fallback
+        - id: ai-service-route
+          uri: ${AI_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/v1/ai,/api/v1/ai/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: aiServiceCircuitBreaker
+                fallbackUri: forward:/fallback
 
 eventpulse:
   ratelimit:
