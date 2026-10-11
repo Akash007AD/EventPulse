@@ -1,159 +1,147 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-export default function EventCard({ event, onSelect }) {
-  const formattedDate = new Date(event.startTime).toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-
+export default function EventCard({ event }) {
   return (
-    <div style={{
-      backgroundColor: 'var(--bg-card)',
-      border: '1px solid var(--border-subtle)',
-      borderRadius: 'var(--radius-md)',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      transition: 'border-color var(--transition-fast), transform var(--transition-fast)',
-      position: 'relative'
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.borderColor = 'var(--border-medium)';
-      e.currentTarget.style.transform = 'translateY(-2px)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.borderColor = 'var(--border-subtle)';
-      e.currentTarget.style.transform = 'translateY(0)';
-    }}
+    <Link
+      to={`/events/${event.id}`}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        textDecoration: 'none',
+        color: 'inherit',
+        cursor: 'pointer',
+        transition: 'transform 200ms ease'
+      }}
+      className="event-card-root"
     >
-      {/* Event Poster / Banner Container */}
+      {/* 2:3 Vertical Poster Container */}
       <div style={{
         position: 'relative',
-        height: '210px',
         width: '100%',
-        backgroundColor: '#0F172A',
-        overflow: 'hidden'
+        aspectRatio: '2 / 3',
+        borderRadius: 'var(--radius-md)',
+        overflow: 'hidden',
+        backgroundColor: 'var(--color-surface-container)',
+        boxShadow: 'var(--shadow-subtle)'
       }}>
-        <img 
-          src={event.posterUrl || event.bannerUrl} 
+        <img
+          src={event.posterUrl}
           alt={event.title}
           style={{
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            filter: 'contrast(1.05) brightness(0.92)'
+            display: 'block',
+            transition: 'transform 350ms cubic-bezier(0.16, 1, 0.3, 1)'
           }}
-          loading="lazy"
+          className="poster-image"
         />
+
+        {/* Bottom Scrim Overlay with Tag & Badge */}
         <div style={{
           position: 'absolute',
-          top: '12px',
-          left: '12px',
+          inset: 'auto 0 0 0',
+          height: '35%',
+          background: 'linear-gradient(to top, rgba(26, 26, 36, 0.9) 0%, transparent 100%)',
           display: 'flex',
-          gap: '8px'
+          alignItems: 'flex-end',
+          padding: '8px 10px'
         }}>
-          <span className="badge badge-amber">{event.category}</span>
-          <span className="badge">{event.city}</span>
+          {event.formatBadge && (
+            <span style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              color: '#FFFFFF',
+              backgroundColor: 'var(--color-primary)',
+              padding: '2px 6px',
+              borderRadius: 'var(--radius-xs)',
+              textTransform: 'uppercase'
+            }}>
+              {event.formatBadge}
+            </span>
+          )}
         </div>
+
+        {/* Urgent/Selling Fast Status Tag (Top Left) */}
+        {event.tag && (
+          <div style={{
+            position: 'absolute',
+            top: '8px',
+            left: '8px',
+            backgroundColor: 'rgba(26, 26, 36, 0.75)',
+            backdropFilter: 'blur(4px)',
+            color: '#FFFFFF',
+            fontSize: '9px',
+            fontWeight: 700,
+            padding: '2px 6px',
+            borderRadius: 'var(--radius-xs)',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase'
+          }}>
+            {event.tag}
+          </div>
+        )}
       </div>
 
-      {/* Content Body */}
-      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-        {/* Date and Venue */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '8px' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-          <span>{formattedDate}</span>
-        </div>
-
-        <h3 style={{ fontSize: '1.15rem', marginBottom: '10px', lineHeight: 1.35 }}>
+      {/* Event Details Content Stack */}
+      <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+        <h3 style={{
+          fontSize: '15px',
+          fontWeight: 700,
+          color: 'var(--color-text-main)',
+          lineHeight: 1.3,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap'
+        }}>
           {event.title}
         </h3>
 
-        <p style={{
-          fontSize: '0.85rem',
-          color: 'var(--text-muted)',
-          marginBottom: '16px',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden'
-        }}>
-          {event.description}
-        </p>
-
-        {/* Performer / Cast Row */}
-        {event.performers && event.performers.length > 0 && (
-          <div style={{
-            borderTop: '1px solid var(--border-subtle)',
-            paddingTop: '12px',
-            marginBottom: '16px'
-          }}>
-            <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: '8px' }}>
-              Featured Cast & Soloists
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ display: 'flex', marginLeft: '4px' }}>
-                {event.performers.slice(0, 3).map((performer, idx) => (
-                  <img
-                    key={performer.id || idx}
-                    src={performer.imageUrl}
-                    alt={performer.name}
-                    title={`${performer.name} (${performer.role})`}
-                    style={{
-                      width: '30px',
-                      height: '30px',
-                      borderRadius: '50%',
-                      border: '2px solid var(--bg-card)',
-                      marginLeft: idx > 0 ? '-10px' : '0',
-                      objectFit: 'cover'
-                    }}
-                  />
-                ))}
-              </div>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                {event.performers.map(p => p.name).slice(0, 2).join(', ')}
-                {event.performers.length > 2 && ` +${event.performers.length - 2} more`}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Footer info: Venue & Price & Action */}
         <div style={{
-          marginTop: 'auto',
-          paddingTop: '14px',
-          borderTop: '1px solid var(--border-subtle)',
+          fontSize: '12px',
+          color: 'var(--color-text-secondary)',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap'
+        }}>
+          {event.genre || `${event.categoryLabel} | ${event.language}`}
+        </div>
+
+        <div style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          gap: '3px',
+          fontSize: '12px',
+          color: 'var(--color-text-secondary)',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap'
         }}>
-          <div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>From</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', fontFamily: 'var(--font-heading)' }}>
-              ₹{event.basePrice}
-            </div>
-          </div>
+          <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--color-primary)' }}>
+            location_on
+          </span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {event.venueName}
+          </span>
+        </div>
 
-          <button 
-            className="btn btn-sm btn-primary"
-            onClick={() => onSelect(event)}
-          >
-            <span>View & Reserve Seats</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </button>
+        <div style={{
+          fontSize: '13px',
+          fontWeight: 700,
+          color: 'var(--color-text-main)',
+          marginTop: '2px'
+        }}>
+          ₹{event.basePrice?.toLocaleString()} <span style={{ fontWeight: 400, fontSize: '11px', color: 'var(--color-text-secondary)' }}>onwards</span>
         </div>
       </div>
-    </div>
+
+      <style>{`
+        .event-card-root:hover .poster-image {
+          transform: scale(1.05);
+        }
+      `}</style>
+    </Link>
   );
 }
