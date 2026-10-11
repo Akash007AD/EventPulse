@@ -64,3 +64,8 @@ docs/
 ai_logs/
 .ai/
 
+# Design & External Templates
+stitch_eventpulse_ticket_booking_platform/
+*stitch*/
+
+
