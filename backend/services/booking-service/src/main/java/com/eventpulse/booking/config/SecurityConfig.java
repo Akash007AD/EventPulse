@@ -40,8 +40,9 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/error").permitAll()
-                        // Booking creation requires CUSTOMER or ADMIN role
-                        .requestMatchers(HttpMethod.POST, "/api/v1/bookings").hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/bookings/calculate-cost").permitAll()
+                        // Booking creation
+                        .requestMatchers(HttpMethod.POST, "/api/v1/bookings").permitAll()
                         // Ticket check-in scanning requires ORGANIZER or ADMIN role
                         .requestMatchers(HttpMethod.POST, "/api/v1/tickets/scan").hasAnyRole("ORGANIZER", "ADMIN")
                         // Ticket viewing requires authenticated user (CUSTOMER, ORGANIZER, or ADMIN)

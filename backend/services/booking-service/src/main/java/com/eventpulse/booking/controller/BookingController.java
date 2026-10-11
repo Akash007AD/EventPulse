@@ -30,6 +30,15 @@ public class BookingController {
 
     private final BookingService bookingService;
     private final com.eventpulse.booking.service.GoogleCalendarService calendarService;
+    private final com.eventpulse.booking.service.CostingService costingService;
+
+    @PostMapping("/calculate-cost")
+    public ResponseEntity<com.eventpulse.booking.dto.CostCalculationResponse> calculateCost(
+            @RequestBody com.eventpulse.booking.dto.CostCalculationRequest request
+    ) {
+        com.eventpulse.booking.dto.CostCalculationResponse response = costingService.calculateCost(request);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
